@@ -4,19 +4,20 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 
 class MainActivity : AppCompatActivity() {
     private lateinit var sensorEventListener: SensorEventListener
+    private lateinit var sensorManager: SensorManager
+    private lateinit var proxySensor: Sensor
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sensorManager = getSystemService<SensorManager>()
+        sensorManager = getSystemService<SensorManager>()!!
 //        if (sensorManager == null) {
 //            Toast.makeText(this, "Could not process", Toast.LENGTH_LONG).show()
 //            finish()
@@ -28,7 +29,8 @@ class MainActivity : AppCompatActivity() {
 //                    """.trimIndent())
 //            }
 //        }
-        val proxySensor = sensorManager?.getSensorList(Sensor.TYPE_PROXIMITY)
+
+        proxySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)!!
         sensorEventListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 Log.d("SENSOR", """onSensorChanged:${event!!.values[0]}""".trimIndent())
@@ -39,5 +41,17 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+       sensorManager.registerListener(sensorEventListener,proxySensor,1000*1000)
+    }
+
+
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(sensorEventListener)
     }
 }
